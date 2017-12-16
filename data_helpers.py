@@ -3,6 +3,7 @@ import re
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.datasets import load_files
 
+preps = ['at', 'on', 'in', 'by', 'for', 'against', 'to', 'from', 'between', 'during', 'with', 'about', 'of']
 
 def clean_str(string):
     """
@@ -101,16 +102,37 @@ def load_data_labels(datasets):
     :return:
     """
     # Split by words
-    x_text = datasets['data']
-    x_text = [clean_str(sent) for sent in x_text]
+    # x_text = datasets['data']
+    # x_text = [clean_str(sent) for sent in x_text]
+    # Index of position in sentence
+    # The pop is to remove trailing empty element
+    x_words = open(datasets + 'words').read().split('\n')
+    x_words.pop()
+    x_indices = open(datasets + 'indices').read().split('\n')
+    x_indices.pop()
+    for i in range(len(x_indices)):
+        x_indices[i] = int(x_indices[i])
+    x_tags = open(datasets + 'tags').read().split('\n')
+    x_tags.pop()
+    x_labels = open(datasets + 'labels').read().split('\n')
+    x_labels.pop()
+    x_trees = open(datasets + 'adj').read().split('\n')
+    x_trees.pop()
+    # for i in range(len(x_trees)):
+    #     x_trees[i] = eval(x_trees[i])
+    y_labels = open(datasets + 'ylabels').read().split('\n')
+    y_labels.pop()
     # Generate labels
     labels = []
-    for i in range(len(x_text)):
-        label = [0 for j in datasets['target_names']]
-        label[datasets['target'][i]] = 1
+    for i in range(len(x_words)):
+        label = [0 for j in preps]
+        # prep = x_words[i].split(' ')[x_indices[i]]
+        print("label " + y_labels[i])
+        label[int(y_labels[i])] = 1
+        y_labels[i] = int(y_labels[i])
         labels.append(label)
     y = np.array(labels)
-    return [x_text, y]
+    return [x_words, x_tags, x_labels, x_trees, x_indices, y, y_labels]
 
 
 def load_embedding_vectors_word2vec(vocabulary, filename, binary):
@@ -119,6 +141,8 @@ def load_embedding_vectors_word2vec(vocabulary, filename, binary):
     with open(filename, "rb") as f:
         header = f.readline()
         vocab_size, vector_size = map(int, header.split())
+        print(vocab_size)
+        print('vocab_size')
         # initial matrix with random uniform
         embedding_vectors = np.random.uniform(-0.25, 0.25, (len(vocabulary), vector_size))
         if binary:
